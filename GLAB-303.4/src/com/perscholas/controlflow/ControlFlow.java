@@ -244,7 +244,13 @@ public class ControlFlow {
         int income, statusInput;
 
         if (usingScanner) {
+            System.out.println("Type an integer for martial status.");
+            for (MaritalStatus maritalStatus : MaritalStatus.values()) {
+                System.out.printf("(%d)%s ",maritalStatus.ordinal(), maritalStatus);
+            }
+            System.out.print(": ");
             statusInput = Integer.parseInt(scanner.next());
+            System.out.print("Type in income as integer: ");
             income = Integer.parseInt(scanner.next());
         } else {
             statusInput = new Random().nextInt(-1,5);
@@ -258,80 +264,35 @@ public class ControlFlow {
             status = MaritalStatus.NOTVALID;
         }
         System.out.print("\t{statusInput = " + statusInput + ", income = "+ income + "}: ");
-        float taxRate;
-        switch (status) {
-            case SINGLE:
-                if (income <= 8350) {
-                    taxRate = 0.10f;
-                } else if (income <= 33950) {
-                    taxRate = 0.15f;
-                } else if (income <= 82250) {
-                    taxRate = 0.25f;
-                } else if (income <= 171550) {
-                    taxRate = 0.28f;
-                } else if (income <= 372950) {
-                    taxRate = 0.33f;
-                } else {
-                    taxRate = 0.35f;
-                }
-                break;
-            case JOINTLY:
-                if (income <= 16700) {
-                    taxRate = 0.10f;
-                } else if (income <= 67900) {
-                    taxRate = 0.15f;
-                } else if (income <= 137050) {
-                    taxRate = 0.25f;
-                } else if (income <= 208850) {
-                    taxRate = 0.28f;
-                } else if (income <= 372950) {
-                    taxRate = 0.33f;
-                } else {
-                    taxRate = 0.35f;
-                }
-                break;
-            case SEPERATELY:
-                if (income <= 8350) {
-                    taxRate = 0.10f;
-                } else if (income <= 33950) {
-                    taxRate = 0.15f;
-                } else if (income <= 68252) {
-                    taxRate = 0.25f;
-                } else if (income <= 104425) {
-                    taxRate = 0.28f;
-                } else if (income <= 186475) {
-                    taxRate = 0.33f;
-                } else {
-                    taxRate = 0.35f;
-                }
-                break;
-            case HOUSEHOLDHEAD:
-                if (income <= 11950) {
-                    taxRate = 0.10f;
-                } else if (income <= 45500) {
-                    taxRate = 0.15f;
-                } else if (income <= 117450) {
-                    taxRate = 0.25f;
-                } else if (income <= 190200) {
-                    taxRate = 0.28f;
-                } else if (income <= 372950) {
-                    taxRate = 0.33f;
-                } else {
-                    taxRate = 0.35f;
-                }
-                break;
-            default:
-                System.out.println(status);
-                taxRate = -1.0f;
-        }
-        System.out.println("Tax Rate: " + taxRate + "; Total Tax Owed: " + (income*taxRate));
+        // Rather than use the switch-case and if-else statements, I elected to try solving with enums.
+        float taxRate = status.getTaxRate(income);
+        System.out.println("Tax Rate: " + taxRate + "; Total Tax Owed: " + ((taxRate<0)?"INVALID":income*taxRate));
     }
 
     private enum MaritalStatus {
-        NOTVALID,
-        SINGLE,
-        JOINTLY,
-        SEPERATELY,
-        HOUSEHOLDHEAD;
+        NOTVALID(null),
+        SINGLE(new int[] {8350,33950,82250,171550,372950}),
+        JOINTLY(new int[] {8350,33950,82250,171550,372950}),
+        SEPERATELY(new int[] {8350,33950,82250,171550,372950}),
+        HOUSEHOLDHEAD(new int[] {8350,33950,82250,171550,372950});
+
+        private final int[] incomeBracket;
+        private static final float[] taxRate = {0.10f, 0.15f, 0.25f, 0.28f, 0.33f, 0.35f};
+
+        MaritalStatus(int[] incomeBracket) {
+            this.incomeBracket = incomeBracket;
+        }
+
+        float getTaxRate(int income) {
+            if (this.equals(NOTVALID) || income < 0) {
+                return -1.0f;
+            }
+            for (int i = 0; i < this.incomeBracket.length; i++) {
+                if (income <= this.incomeBracket[i]) {
+                    return taxRate[i];
+                }
+            }
+            return taxRate[taxRate.length-1];
+        }
     }
 }
